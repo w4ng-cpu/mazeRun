@@ -86,6 +86,7 @@ public class MazeSquare extends GameSquare
 				shortestPath = (ArrayList<MazeSquare>) currentPath.clone();
 			}
             targetFound = true;
+            removeSquareFromArray(beenToSquare, current);
 		}
 
         if (!targetFound) {
@@ -170,14 +171,7 @@ public class MazeSquare extends GameSquare
         this.target = false;
     }
 
-    public void resetPath(ArrayList<MazeSquare> array) {
-        System.out.println("size " + array.size());
-        for (int i = 0; i < array.size(); i++) {
-            System.out.println("removing: " + array.get(i).toString());
-            array.remove(i);
-        }
-        System.out.println("size " + array.size());
-    }
+    
 
 	/**
 	 * A method that is invoked when a reset() method is called on GameBoard.
