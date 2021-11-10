@@ -171,10 +171,12 @@ public class MazeSquare extends GameSquare
     }
 
     public void resetPath(ArrayList<MazeSquare> array) {
+        System.out.println("size " + array.size());
         for (int i = 0; i < array.size(); i++) {
-            System.out.println(array.get(i).toString());
+            System.out.println("removing: " + array.get(i).toString());
             array.remove(i);
         }
+        System.out.println("size " + array.size());
     }
 
 	/**
@@ -195,8 +197,10 @@ public class MazeSquare extends GameSquare
 			}
 		}
         //reset shortestPath and beenToSquare
-        resetPath(shortestPath);
-        resetPath(beenToSquare);
+        shortestPath.clear();
+        System.out.println("size: " + shortestPath.size());
+        beenToSquare.clear();
+        System.out.println("size: " + beenToSquare.size());
 
 
         System.out.println("finished reset");
