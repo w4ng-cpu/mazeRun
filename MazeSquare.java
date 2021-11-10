@@ -12,11 +12,12 @@ public class MazeSquare extends GameSquare
 	private GameBoard board;			// A reference to the GameBoard this square is part of.
 	private boolean target;				// true if this square is the target of the search.
 
-	private static MazeSquare currentSquare;
-	private static MazeSquare endPoint;
+	private static MazeSquare currentSquare;    //the current Square at
+	private static MazeSquare endPoint;         //the square we are trying to get to
 
 	private static ArrayList<MazeSquare> shortestPath = new ArrayList<MazeSquare>();
 	private static ArrayList<MazeSquare> currentPath = new ArrayList<MazeSquare>();
+    private static ArrayList<MazeSquare> beenToSquare = new ArrayList<MazeSquare>();
 
 	private static int shortestCount;	// The shortest path found so far in this search.
 
@@ -33,16 +34,24 @@ public class MazeSquare extends GameSquare
 		this.board = board;
 	}
 
+    /**
+     * This is the searchMethod
+     *
+     */
 	public void searchMethod(MazeSquare current, int count)
 	{
-		shortestPath.add(current);
+        //adds current MazeSquare to currentPath
+		currentPath.add(current);
 		current.setHighlight(true);
+
+        //when we find a path-to/reached endPoint
 		if (current == endPoint) {
-			if (count < shortestCount) {
+			if (count < shortestCount) {    //checks if this path is the shortest path, if yes then update shortestPath
 				shortestCount = count;
 				shortestPath = (ArrayList)currentPath.clone();
 			}
 		}
+
 		for (int i = 0; i < 4; i++) {
 			switch (i) {
 				case(0): //left
@@ -102,9 +111,10 @@ public class MazeSquare extends GameSquare
 	 */	
 	public void rightClicked()
 	{
-		MazeSquare.shortestCount = 1000;
+		MazeSquare.shortestCount = 1000; //sets shortestCount to illogically high number
+        reset(1);
 		searchMethod(this, 0);
-		reset(1);
+        reset(1);
 		for (int i = 0; i < shortestPath.size(); i++) {
 			shortestPath.get(i).setHighlight(false);
 		}
@@ -118,10 +128,15 @@ public class MazeSquare extends GameSquare
 	 */
 	public void reset(int n)
 	{
+        //reset hightlighted squares
 		for (int i = 0; i < 10; i++) {
 			for (int j = 0; j < 10; j++) {
-				board.getSquareAt(i, j).setHighlight(true);
+				board.getSquareAt(i, j).setHighlight(false);
 			}
 		}
+        //reset shortestPath
+        for (MazeSquare s : shortestPath) {
+            shortestPath.remove(s);
+        }
 	}
 }
