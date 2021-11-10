@@ -63,19 +63,28 @@ public class MazeSquare extends GameSquare
         }
     }
 
+    public boolean checkSquareInArray(ArrayList<MazeSquare> array, MazeSquare square) {
+        for (MazeSquare arraySquare : array) {
+            if (square == arraySquare) {
+                return true;
+            } 
+        }
+        return false;
+    }
+
     /**
      * This is the searchMethod
      *
      */
 	public void searchMethod(MazeSquare current, int count)
 	{
+        System.out.println("new stack " + count);
         System.out.println("NewSquare: " + current.toString());
         //acts as a flag
         boolean targetFound = false;
 
         //adds current MazeSquare to currentPath
 		currentPath.add(current);
-        beenToSquare.add(current);
 		current.setHighlight(true);
         
 
@@ -84,34 +93,43 @@ public class MazeSquare extends GameSquare
 			if (count < shortestCount) {    //checks if this path is the shortest path, if yes then update shortestPath
 				shortestCount = count;
 				shortestPath = (ArrayList<MazeSquare>) currentPath.clone();
+                System.out.println("new shortest path: " + count);
 			}
             targetFound = true;
-            removeSquareFromArray(beenToSquare, current);
 		}
 
-        if (!targetFound) {
+        //don't recurse once target is found or count has exceeded shortest count
+        //run, target isnt found and count is smaller than shortestcount
+        if (!targetFound && (count < shortestCount)) {
             for (int i = 0; i < 4; i++) {
                 switch (i) {
                     case(0): //left
+                        //check for walls
                         if (!current.getWall(0)) {
                             MazeSquare temp = (MazeSquare) board.getSquareAt(current.getXLocation() - 1, current.getYLocation());
-                            if (!beenTo(temp)) {
+                            //check if next square is fully traverse or is previous square, if not fully traversed or not on currentPath squares
+                            /*
+                            move left only when 
+                            left square isn't on currentPath (previous square) (method returns true if on currentPath)
+                                and when left square hasn't been fully explored
+                            */
+                            if (!(checkSquareInArray(currentPath, temp))) {
                                 searchMethod(temp, count + 1);
                             }
                         }
                         break;
-                    case(1): //right
-                        if (!current.getWall(1)) {
-                            MazeSquare temp = (MazeSquare) board.getSquareAt(current.getXLocation() + 1, current.getYLocation());
-                            if (!beenTo(temp)) {
-                                searchMethod(temp, count + 1);
-                            }
-                        }
-                        break;
-                    case(2): //top
+                    case(1): //top
                         if (!current.getWall(2)) {
                             MazeSquare temp = (MazeSquare) board.getSquareAt(current.getXLocation(), current.getYLocation() - 1);
-                            if (!beenTo(temp)) {
+                            if (!(checkSquareInArray(currentPath, temp))) {
+                                searchMethod(temp, count + 1);
+                            }
+                        }
+                        break;
+                    case(2): //right
+                        if (!current.getWall(1)) {
+                            MazeSquare temp = (MazeSquare) board.getSquareAt(current.getXLocation() + 1, current.getYLocation());
+                            if (!(checkSquareInArray(currentPath, temp))) {
                                 searchMethod(temp, count + 1);
                             }
                         }
@@ -119,7 +137,7 @@ public class MazeSquare extends GameSquare
                     case(3): //bottom
                         if (!current.getWall(3)) {
                             MazeSquare temp = (MazeSquare) board.getSquareAt(current.getXLocation(), current.getYLocation() + 1);
-                            if (!beenTo(temp)) {
+                            if (!(checkSquareInArray(currentPath, temp))) {
                                 searchMethod(temp, count + 1);
                             }
                         }
@@ -129,9 +147,16 @@ public class MazeSquare extends GameSquare
                 }
             }
         }
+        
+        if (!targetFound) {
+            //beenToSquare.add(current); //square completely visited
+            System.out.println("nowhere to go");
+        }
 
         current.setHighlight(false);
 		removeSquareFromArray(currentPath, current);
+
+        System.out.println("exit stack");
 	}
 
 	/**
@@ -144,6 +169,8 @@ public class MazeSquare extends GameSquare
         System.out.println("leftClicked");
         reset(1);
 		this.target = true;
+        System.out.println("endPoint: " + toString());
+        
 	}
     
     /**
@@ -153,6 +180,7 @@ public class MazeSquare extends GameSquare
 	 */	
 	public void rightClicked()
 	{
+        System.out.println("");
         System.out.println("rightClicked");
 		MazeSquare.shortestCount = 1000; //sets shortestCount to illogically high number
 
@@ -170,8 +198,6 @@ public class MazeSquare extends GameSquare
     public void resetTarget() {
         this.target = false;
     }
-
-    
 
 	/**
 	 * A method that is invoked when a reset() method is called on GameBoard.
