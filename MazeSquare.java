@@ -12,20 +12,14 @@ public class MazeSquare extends GameSquare
 	private GameBoard board;			// A reference to the GameBoard this square is part of.
 	private boolean target;				// true if this square is the target of the search.
 
-    private boolean visited;
-    private int count;
+    private int count;                  // Keeps track how many recursion levels it took to reach this square
 
 	private static int shortestCount;	// The shortest path found so far in this search.
 
-
-	private static MazeSquare currentSquare;    //the current Square at
-
+    // Keeps track of MazeSquares of paths and visisted
 	private static ArrayList<MazeSquare> shortestPath = new ArrayList<MazeSquare>();
 	private static ArrayList<MazeSquare> currentPath = new ArrayList<MazeSquare>();
     private static ArrayList<MazeSquare> visitedSquare = new ArrayList<MazeSquare>();
-    private static ArrayList<MazeSquare> finalPath = new ArrayList<MazeSquare>();
-
-
 
 	/**
 	 * Create a new GameSquare, which can be placed on a GameBoard.
@@ -44,20 +38,34 @@ public class MazeSquare extends GameSquare
      * Overriding Object method
      * Returns the MazeSquare position in String
      * For debugging
+     * @return MazeSuqare location
      */
     public String toString() {
         String temp = "X:" + getXLocation() + " Y:" + getYLocation();
         return temp;
     }
 
-    public void removeSquareFromArray(ArrayList<MazeSquare> array, MazeSquare s) {
+    /**
+     * Removes a specific square object reference from array
+     * Used to remove current square from currentPath
+     * @param array the array selected
+     * @param s the square selected
+     */
+    public void removeSquareFromArray(ArrayList<MazeSquare> array, MazeSquare square) {
         for (int i = 0; i < array.size(); i++) {
-            if (s == array.get(i)) {
+            if (square == array.get(i)) {
                 array.remove(i);
             }
         }
     }
 
+    /**
+     * Checks for a specific object reference in array
+     * Used to check if (next) square has been visited or not
+     * @param array the array selected
+     * @param square the square selected
+     * @return boolean if square is in Array or not
+     */
     public boolean checkSquareInArray(ArrayList<MazeSquare> array, MazeSquare square) {
         for (MazeSquare arraySquare : array) {
             if (square == arraySquare) {
@@ -67,6 +75,12 @@ public class MazeSquare extends GameSquare
         return false;
     }
 
+    /**
+     * Copys one arraylist's object references into another
+     * Used to copy currentPath into shortestPath when new shortest path is found
+     * @param copyFrom the arraylist we copying from
+     * @param copyTo the arraylist we copying into
+     */
     public void copyArray(ArrayList<MazeSquare> copyFrom, ArrayList<MazeSquare> copyTo) {
         copyTo.clear();
         for (MazeSquare s : copyFrom) {
@@ -74,6 +88,12 @@ public class MazeSquare extends GameSquare
         }
     }
 
+    /**
+     * Get an adjacent square 
+     * @param i represents the adajcent square you want to select, 0:top; 1:right; 2:bottom; 3:left;
+     * @param current uses current square to find next square
+     * @return the adjacent square
+     */
     public MazeSquare getAdjacentSquare(int i, MazeSquare current) {
         MazeSquare temp;
         switch (i) {
@@ -98,6 +118,12 @@ public class MazeSquare extends GameSquare
         }
     }
 
+    /**
+     * Checks walls of current square
+     * @param i represent the wall you want to check, 0:top; 1:right; 2:bottom; 3:left;
+     * @param current the current square being checked
+     * @return boolean if wall if there or not
+     */
     public boolean checkForWall(int i, MazeSquare current) {
         switch (i) {
             case(0): //top
@@ -118,8 +144,9 @@ public class MazeSquare extends GameSquare
     }
 
     /**
-     * This is the searchMethod using depth first search
-     *
+     * This is the recursive searchMethod using depth first search
+     * @param current the current square we enter into
+     * @param count the current layer of recursion we are at (starts from 0)
      */
 	public void searchMethod(MazeSquare current, int count)
 	{
@@ -178,13 +205,16 @@ public class MazeSquare extends GameSquare
 
 	/**
 	 * A method that is invoked when a user clicks on this square.
-	 * This defines the end point for the search.
-	 * resets the board
+	 * This defines the end point/target for the search.
+	 * Resets the board highlights, resets the paths, resets the target
 	 */	
     public void leftClicked()
 	{
         //System.out.println("leftClicked");
+        //resets all highlights, target and paths
+        reset(0);
         reset(1);
+        reset(2);
 		this.target = true;
         //System.out.println("endPoint: " + toString());
         
@@ -193,15 +223,18 @@ public class MazeSquare extends GameSquare
     /**
 	 * A method that is invoked when a user clicks on this square.
 	 * This defines the start point for the search. 
-	 * Runs the searchMethod
+     * Resets paths, highlights and shortestCount
+	 * Runs the searchMethod recursion
+     * Once recursion finishes, hightlight shortestPath as long as shortestCount isn't 0
+     * Print results
 	 */	
 	public void rightClicked()
 	{
         //left click must have set target
         //System.out.println("");
         //System.out.println("rightClicked");
-        resetPaths();
-        resetHightlight();
+        reset(0);
+        reset(2);
 		MazeSquare.shortestCount = 1000; //sets shortestCount to illogically high number
 
         //System.out.println("starting search");
@@ -217,46 +250,41 @@ public class MazeSquare extends GameSquare
 		System.out.println(" *** COMPLETE: SHORTEST ROUTE " + (MazeSquare.shortestCount == 1000 || MazeSquare.shortestCount == 0  ? "IMPOSSIBLE" : MazeSquare.shortestCount) + " ***");
 	}
 
-    public void resetTarget() {
-        this.target = false;
-    }
-
 	/**
-	 * A method that is invoked when a reset() method is called on GameBoard.
-	 * 
-	 * @param n An unspecified value that matches that provided in the call to GameBoard reset()
+	 * A method that is invoked when a reset(int n) method is called on GameBoard.
+	 * n:0 resets all highlights of squares
+     * n:1 resets target square
+     * n:2 reset shortestPath and visitedSquare arraylists
+	 * @param n value determines type of reset
 	 */
 	public void reset(int n)
 	{
-        //System.out.println("starting reset");
-        //reset hightlighted squares and reset targetsquare
-		for (int i = 0; i < 10; i++) {
-			for (int j = 0; j < 10; j++) {
-				board.getSquareAt(i, j).setHighlight(false);
-
-                MazeSquare temp = (MazeSquare) board.getSquareAt(i, j);
-                temp.resetTarget();
-			}
-		}
-        //reset shortestPath and beenToSquare
-        shortestPath.clear();
-        visitedSquare.clear();
-
-        //System.out.println("finished reset");
+        switch(n) {
+            case(0):
+                //case 0 resets highlights of all squares
+                for (int i = 0; i < 10; i++) {
+                    for (int j = 0; j < 10; j++) {
+                        board.getSquareAt(i, j).setHighlight(false);
+                    }
+                }
+                break;
+            case(1):
+                //case 1 resets target
+                for (int i = 0; i < 10; i++) {
+                    for (int j = 0; j < 10; j++) {
+                        MazeSquare temp = (MazeSquare) board.getSquareAt(i, j);
+                        temp.target = false;
+                    }
+                }
+                break;
+            case(2):
+                //case 2 reset shortestPath and visitedSquare arraylists
+                shortestPath.clear();
+                visitedSquare.clear();
+                break;
+            default:
+                //invalid n
+                break;
+        }
 	}
-
-    public void resetHightlight() {
-        //System.out.println("starting reset");
-        //reset hightlighted squares 
-		for (int i = 0; i < 10; i++) {
-			for (int j = 0; j < 10; j++) {
-				board.getSquareAt(i, j).setHighlight(false);
-			}
-		}
-    }
-
-    public void resetPaths() {
-        shortestPath.clear();
-        visitedSquare.clear();
-    }
 }
