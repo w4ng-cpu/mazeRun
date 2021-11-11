@@ -124,8 +124,8 @@ public class MazeSquare extends GameSquare
 	public void searchMethod(MazeSquare current, int count)
 	{
         //print out count/recursion level and the current square we are at
-        System.out.println("new stack: " + count);
-        System.out.println("current square: " + current.toString());
+        //System.out.println("new stack: " + count);
+        //System.out.println("current square: " + current.toString());
 
         //adds current square to currentpath and adds weight (the layer of recursion at) to current
         currentPath.add(current);
@@ -136,8 +136,8 @@ public class MazeSquare extends GameSquare
 			if (count < shortestCount) {    //checks if this path is shorter than shortest path, if yes then update shortestPath
 				shortestCount = count;
 				copyArray(currentPath, shortestPath);
-                System.out.println("new shortest path: " + count);
-                System.out.println("");
+                //System.out.println("new shortest path: " + count);
+                //System.out.println("");
 			}
             //remove current from currentPath as we are backtracking/terminating this layer
             removeSquareFromArray(currentPath, current);
@@ -166,13 +166,13 @@ public class MazeSquare extends GameSquare
         }
         
         //run, once square adajcent neightbours have been checked/explored
-        System.out.println("square ceompletely visited: " + toString());
+        //System.out.println("square ceompletely visited: " + toString());
 
         current.setHighlight(false);
 
 		removeSquareFromArray(currentPath, current);
 
-        System.out.println("exiting stack: " + count);
+        //System.out.println("exiting stack: " + count);
 	}
 
 
@@ -183,10 +183,10 @@ public class MazeSquare extends GameSquare
 	 */	
     public void leftClicked()
 	{
-        System.out.println("leftClicked");
+        //System.out.println("leftClicked");
         reset(1);
 		this.target = true;
-        System.out.println("endPoint: " + toString());
+        //System.out.println("endPoint: " + toString());
         
 	}
     
@@ -198,17 +198,21 @@ public class MazeSquare extends GameSquare
 	public void rightClicked()
 	{
         //left click must have set target
-        System.out.println("");
-        System.out.println("rightClicked");
+        //System.out.println("");
+        //System.out.println("rightClicked");
+        resetPaths();
+        resetHightlight();
 		MazeSquare.shortestCount = 1000; //sets shortestCount to illogically high number
 
-        System.out.println("starting search");
+        //System.out.println("starting search");
 		searchMethod(this, 0);
-        System.out.println("finished search");
+        //System.out.println("finished search");
 
-		for (MazeSquare s : shortestPath) {
-			s.setHighlight(true);
-		}
+        if (MazeSquare.shortestCount != 0) {
+            for (MazeSquare s : shortestPath) {
+                s.setHighlight(true);
+            }
+        }
 
 		System.out.println(" *** COMPLETE: SHORTEST ROUTE " + (MazeSquare.shortestCount == 1000 || MazeSquare.shortestCount == 0  ? "IMPOSSIBLE" : MazeSquare.shortestCount) + " ***");
 	}
@@ -224,7 +228,7 @@ public class MazeSquare extends GameSquare
 	 */
 	public void reset(int n)
 	{
-        System.out.println("starting reset");
+        //System.out.println("starting reset");
         //reset hightlighted squares and reset targetsquare
 		for (int i = 0; i < 10; i++) {
 			for (int j = 0; j < 10; j++) {
@@ -238,6 +242,21 @@ public class MazeSquare extends GameSquare
         shortestPath.clear();
         visitedSquare.clear();
 
-        System.out.println("finished reset");
+        //System.out.println("finished reset");
 	}
+
+    public void resetHightlight() {
+        //System.out.println("starting reset");
+        //reset hightlighted squares 
+		for (int i = 0; i < 10; i++) {
+			for (int j = 0; j < 10; j++) {
+				board.getSquareAt(i, j).setHighlight(false);
+			}
+		}
+    }
+
+    public void resetPaths() {
+        shortestPath.clear();
+        visitedSquare.clear();
+    }
 }
