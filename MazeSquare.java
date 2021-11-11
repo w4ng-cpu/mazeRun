@@ -12,6 +12,9 @@ public class MazeSquare extends GameSquare
 	private GameBoard board;			// A reference to the GameBoard this square is part of.
 	private boolean target;				// true if this square is the target of the search.
 
+    private boolean visited;
+    private int count;
+
 	private static int shortestCount;	// The shortest path found so far in this search.
 
 
@@ -19,7 +22,8 @@ public class MazeSquare extends GameSquare
 
 	private static ArrayList<MazeSquare> shortestPath = new ArrayList<MazeSquare>();
 	private static ArrayList<MazeSquare> currentPath = new ArrayList<MazeSquare>();
-    private static ArrayList<MazeSquare> beenToSquare = new ArrayList<MazeSquare>();
+    private static ArrayList<MazeSquare> visitedSquare = new ArrayList<MazeSquare>();
+    private static ArrayList<MazeSquare> finalPath = new ArrayList<MazeSquare>();
 
 
 
@@ -46,15 +50,6 @@ public class MazeSquare extends GameSquare
         return temp;
     }
 
-    public boolean beenTo(MazeSquare square) {
-        for (MazeSquare s : beenToSquare) {
-            if (s == square) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void removeSquareFromArray(ArrayList<MazeSquare> array, MazeSquare s) {
         for (int i = 0; i < array.size(); i++) {
             if (s == array.get(i)) {
@@ -72,96 +67,114 @@ public class MazeSquare extends GameSquare
         return false;
     }
 
+    public void copyArray(ArrayList<MazeSquare> copyFrom, ArrayList<MazeSquare> copyTo) {
+        copyTo.clear();
+        for (MazeSquare s : copyFrom) {
+            copyTo.add(s);
+        }
+    }
+
+    public MazeSquare getAdjacentSquare(int i, MazeSquare current) {
+        MazeSquare temp;
+        switch (i) {
+            case(0): //top
+                temp = (MazeSquare) board.getSquareAt(current.getXLocation(), current.getYLocation() - 1);
+                return temp;
+
+            case(1): //right
+                temp = (MazeSquare) board.getSquareAt(current.getXLocation() + 1, current.getYLocation());
+                return temp;
+
+            case(2): //bottom
+                temp = (MazeSquare) board.getSquareAt(current.getXLocation(), current.getYLocation() + 1);
+                return temp;
+
+            case(3): //left
+                temp = (MazeSquare) board.getSquareAt(current.getXLocation() - 1, current.getYLocation());
+                return temp;
+
+            default: //default returns true, wall exists
+                return current;
+        }
+    }
+
+    public boolean checkForWall(int i, MazeSquare current) {
+        switch (i) {
+            case(0): //top
+                return current.getWall(2);
+
+            case(1): //right
+                return current.getWall(1);
+
+            case(2): //bottom
+                return current.getWall(3);
+
+            case(3): //left
+                return current.getWall(0);
+
+            default: //default returns true, wall exists
+                return true;
+        }
+    }
+
     /**
-     * This is the searchMethod
+     * This is the searchMethod using depth first search
      *
      */
 	public void searchMethod(MazeSquare current, int count)
 	{
-        System.out.println("new stack " + count);
-        System.out.println("NewSquare: " + current.toString());
-        //acts as a flag
-        boolean targetFound = false;
+        //print out count/recursion level and the current square we are at
+        System.out.println("new stack: " + count);
+        System.out.println("current square: " + current.toString());
 
-        //adds current MazeSquare to currentPath
-		currentPath.add(current);
-		current.setHighlight(true);
-        
+        //adds current square to currentpath and adds weight (the layer of recursion at) to current
+        currentPath.add(current);
+        current.count = count;
 
-        //when we find a path-to/reached endPoint
+        //if we reach goal/end point
 		if (current.target == true) {
-			if (count < shortestCount) {    //checks if this path is the shortest path, if yes then update shortestPath
+			if (count < shortestCount) {    //checks if this path is shorter than shortest path, if yes then update shortestPath
 				shortestCount = count;
-				shortestPath = (ArrayList<MazeSquare>) currentPath.clone();
+				copyArray(currentPath, shortestPath);
                 System.out.println("new shortest path: " + count);
+                System.out.println("");
 			}
-            targetFound = true;
-            removeSquareFromArray(beenToSquare, beenToSquare.get(beenToSquare.size() - 1));
+            //remove current from currentPath as we are backtracking/terminating this layer
+            removeSquareFromArray(currentPath, current);
+            return;
 		}
 
-        //don't recurse once target is found and count equal or larger to  shortest count
-        //run, if target isnt found and count is smaller than shortestcount
-        if (!targetFound && (count < shortestCount)) {
+        //if we don't reach goal/end point continue procedurally
+        //adds current MazeSquare to visitedSquare arrayList and highlight current square
+		visitedSquare.add(current);
+		current.setHighlight(true);
+
+        //run, if current count is less than shortestCount - 1 (so there is a reason to recurse again)
+        if (count < (shortestCount - 1)) {
             for (int i = 0; i < 4; i++) {
-                switch (i) {
-                    case(0): //left
-                        //check for walls
-                        if (!current.getWall(0)) {
-                            MazeSquare temp = (MazeSquare) board.getSquareAt(current.getXLocation() - 1, current.getYLocation());
-                            //check if next square is fully traverse or is previous square, if not fully traversed or not on currentPath squares
-                            /*
-                            move left only when 
-                            left square isn't on currentPath (previous square) (method returns true if on currentPath)
-                                and when left square hasn't been fully explored
-                            */
-                            if (!(checkSquareInArray(currentPath, temp)) && !(checkSquareInArray(beenToSquare, temp))) {
-                                searchMethod(temp, count + 1);
-                            }
-                        }
-                        break;
-                    case(1): //top
-                        if (!current.getWall(2)) {
-                            MazeSquare temp = (MazeSquare) board.getSquareAt(current.getXLocation(), current.getYLocation() - 1);
-                            if (!(checkSquareInArray(currentPath, temp)) && !(checkSquareInArray(beenToSquare, temp))) {
-                                searchMethod(temp, count + 1);
-                            }
-                        }
-                        break;
-                    case(2): //right
-                        if (!current.getWall(1)) {
-                            MazeSquare temp = (MazeSquare) board.getSquareAt(current.getXLocation() + 1, current.getYLocation());
-                            if (!(checkSquareInArray(currentPath, temp)) && !(checkSquareInArray(beenToSquare, temp))) {
-                                searchMethod(temp, count + 1);
-                            }
-                        }
-                        break;
-                    case(3): //bottom
-                        if (!current.getWall(3)) {
-                            MazeSquare temp = (MazeSquare) board.getSquareAt(current.getXLocation(), current.getYLocation() + 1);
-                            if (!(checkSquareInArray(currentPath, temp)) && !(checkSquareInArray(beenToSquare, temp))) {
-                                searchMethod(temp, count + 1);
-                            }
-                        }
-                        break;
-                    default:
-                        break;	
+                //checks top, right, bottom then left
+                //run if there's no wall
+                if (!checkForWall(i, current)) {
+                    //get the next square
+                    MazeSquare nextSquare = getAdjacentSquare(i, current);
+                    //run if nextSquare hasn't been visited
+                    if (!(checkSquareInArray(visitedSquare, nextSquare)) || (count < (nextSquare.count - 1))) {
+                        searchMethod(nextSquare, count + 1);
+                    }
                 }
             }
-            //square has nowhere else to go
         }
         
-
-        //if currentsquare isnt target square then
-        if (!targetFound) {
-            beenToSquare.add(current); //square completely visited
-            System.out.println("nowhere to go");
-        }
+        //run, once square adajcent neightbours have been checked/explored
+        System.out.println("square ceompletely visited: " + toString());
 
         current.setHighlight(false);
+
 		removeSquareFromArray(currentPath, current);
 
-        System.out.println("exit stack");
+        System.out.println("exiting stack: " + count);
 	}
+
 
 	/**
 	 * A method that is invoked when a user clicks on this square.
@@ -184,6 +197,7 @@ public class MazeSquare extends GameSquare
 	 */	
 	public void rightClicked()
 	{
+        //left click must have set target
         System.out.println("");
         System.out.println("rightClicked");
 		MazeSquare.shortestCount = 1000; //sets shortestCount to illogically high number
@@ -196,7 +210,7 @@ public class MazeSquare extends GameSquare
 			s.setHighlight(true);
 		}
 
-		System.out.println(" *** COMPLETE: SHORTEST ROUTE " + (MazeSquare.shortestCount == 1000 ? "IMPOSSIBLE" : MazeSquare.shortestCount) + " ***");
+		System.out.println(" *** COMPLETE: SHORTEST ROUTE " + (MazeSquare.shortestCount == 1000 || MazeSquare.shortestCount == 0  ? "IMPOSSIBLE" : MazeSquare.shortestCount) + " ***");
 	}
 
     public void resetTarget() {
@@ -222,10 +236,7 @@ public class MazeSquare extends GameSquare
 		}
         //reset shortestPath and beenToSquare
         shortestPath.clear();
-        System.out.println("size: " + shortestPath.size());
-        beenToSquare.clear();
-        System.out.println("size: " + beenToSquare.size());
-
+        visitedSquare.clear();
 
         System.out.println("finished reset");
 	}
