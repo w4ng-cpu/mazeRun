@@ -9,9 +9,19 @@ import java.util.ArrayList;
  */
 public class MazeSquare extends GameSquare
 {
-	private GameBoard board;			// A reference to the GameBoard this square is part of.
-	private boolean target;				// true if this square is the target of the search.
+    /**
+     * board, a reference to the GameBoard this square is part of.
+     */
+	private GameBoard board;
 
+    /** 
+     * target, true if this square is the target of the search else false.
+     */
+	private boolean target;
+
+    /**
+     * count, keeps track how many recursion levels it took to reach this square
+     */
     private int count;                  // Keeps track how many recursion levels it took to reach this square
 
 	private static int shortestCount;	// The shortest path found so far in this search.
@@ -49,7 +59,7 @@ public class MazeSquare extends GameSquare
      * Removes a specific square object reference from array
      * Used to remove current square from currentPath
      * @param array the array selected
-     * @param s the square selected
+     * @param square the square selected
      */
     public void removeSquareFromArray(ArrayList<MazeSquare> array, MazeSquare square) {
         for (int i = 0; i < array.size(); i++) {
